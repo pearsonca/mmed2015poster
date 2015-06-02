@@ -7,4 +7,4 @@ The Alachua County ControlFlu Program ran an SLIV program in coordination with t
 
 #### SOURCE
 
-Obtain the source for this visualization @ [github](https://github.com/pearsonca/AIMSposter).  The necessary `.RData` file to generate these results is available upon request to [blank101 {at} gmail {dot} com](mailto:blank101@gmail.com).
+Obtain the source for this visualization @ [github](https://github.com/pearsonca/mmed2015poster).  The necessary `.RData` file to generate these results is available upon request to [blank101 {at} gmail {dot} com](mailto:blank101@gmail.com).
