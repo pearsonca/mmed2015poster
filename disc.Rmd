@@ -1,0 +1,25 @@
+---
+output: html_document
+---
+#### BACKGROUND
+
+Schools have high population densities, making them ideal for both pathogen transmission and public health interventions.  They are particularly critical to influenza transmission between households, and vaccinating this route can effectively prevent cases in other demographics.  **S**chool **L**ocated **I**nfluenza **V**accination (**SLIV**) programs target this opportunity.
+
+#### QUESTION
+
+Despite low overhead, SLIV programs are only self-sustaining when voluntarily funded, presumably by beneficiaries.  Health insurers could realize the indirect benefits of *community immunity* via reduced treatment payouts. For them, the question is: **under what conditions are SLIV programs net-cost effective?**
+
+#### METHOD
+
+We simulated epidemics as a function of SLIV campaign coverage rates using [FluTE](dx.doi.org/10.1371/journal.pcbi.1000656), sampling across two scenario axes: vaccine matching, *i.e.* well-matched (`homologous`) or not (`heterologous`), and transmissibility, *i.e.* R\_0 = (1.2, 1.3, 1.4).  The results are reduced to mean attack rates on broad age categories: pre-school, school age, young adults, middle ages, and seniors.
+
+Using reported insurance payouts for Influenza-Like Illness (*ILI*) and known costs for administering the program (*fixed by population*) and vaccine doses (*variable by coverage*), we can estimate the total insurer costs and coverage which minimizes them.
+
+#### RESULTS + FUTURE WORK
+
+As shown in **Cost Analyses**, SLIV programs reduce cost only in some scenarios.  For lower transmissibility outbreaks, maximum benefit can occur well below full coverage.  Counter-intuitively, SLIV is more beneficial when the vaccine is heterologous: since the base coverage for a well-matched vaccine avoids most costs already, little is gained by raising SLIV rates.
+
+In future analysis, we plan to address these considerations:
+ - FluTE is not adequately flexible to adapt to particular communities.  The runs simulate a population like Los Angeles, CA (a sprawling urban setting) while the costs are derived from rates for Alachua County, FL (a small city surrounded by a rural setting).
+ - Cost estimates are based on crude values from insurance data, with conditioning by other parameters (*e.g.*, if they came from high virulence flu years).
+ - Other entities could also benefit enough to warrant paying the costs, *e.g.* employers recovering lost work hours.

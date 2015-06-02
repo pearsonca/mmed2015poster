@@ -1,0 +1,128 @@
+---
+runtime: shiny
+output: html_document
+css: mod.css
+---
+```{r, echo=FALSE}
+group <- function(which, low_cost, high_cost) {
+  fixedRow(column(width=2, h5(which)), column(width=10,
+        fixedRow(column(width=4, h6("Outpatient")), 
+          column(width=4, numericInput(paste0("outp_cost_low_",which), "$", value=low_cost["outp"], step=0.01, min=0, max=10e4)),
+          column(width=4, numericInput(paste0("outp_cost_high_",which), "$", value=high_cost["outp"], step=0.01, min=0, max=10e4))
+        ),
+        fixedRow(column(width=4, h6("Hospitalization")), 
+          column(width=4, numericInput(paste0("hosp_cost_low_",which), "$", value=low_cost["hosp"], step=0.01, min=0, max=10e4)),
+          column(width=4, numericInput(paste0("hosp_cost_high_",which), "$", value=high_cost["hosp"], step=0.01, min=0, max=10e4))
+        ),
+        fixedRow(column(width=4, h6("Death")), 
+          column(width=4, numericInput(paste0("death_cost_low_",which), "$", value=low_cost["death"], step=0.01, min=0, max=10e4)),
+          column(width=4, numericInput(paste0("death_cost_high_",which), "$", value=high_cost["death"], step=0.01, min=0, max=10e4))
+        )
+      ))
+}
+cost <- function(input, outcome, risk) {
+  base <- paste(outcome, "cost", risk, c("0-4","5-18","19-29","30-64","65+"), sep="_")
+  sapply(base, function(i) input[[i]])
+}
+
+suppressWarnings({
+  invisible({
+    require(data.table);
+    require(ggplot2);
+    require(reshape2);
+    load("caseData.RData");
+  })
+  navbarPage(
+  title="Interactive SLIV Cost Estimator",
+  tabPanel("Summary", includeMarkdown("./disc.Rmd")),
+  tabPanel("Scenarios", sidebarLayout(
+    sidebarPanel(
+      selectInput("scenario","Vaccine Matching", choices=levels(mean.cases.melt$scenario)),
+      selectInput("R_0","R_0", choices=unique(mean.cases.melt$r))
+    ),
+    mainPanel({
+      ref.cases.melt <- mean.cases.melt[,
+        list(cases = sum(cases), population=sum(population)),
+        by = c("AgeGroup","scenario","vax_rate","r","outcome")
+      ]
+      renderPlot(
+        ggplot(ref.cases.melt[scenario == input$scenario & r == input$R_0 & outcome != "OTC"]) + 
+        theme_bw() +
+        aes(x=vax_rate, y = cases/10000, fill=AgeGroup) +
+        theme(
+          axis.title = element_text(face = "bold"),
+          legend.title = element_text(face="bold"),
+          legend.text=element_text(face= "bold"),
+          strip.text = element_text(face="bold")
+        ) + ylab("10k outcomes") + xlab("Vaccination Rate in 5-18 year olds") +
+        scale_fill_brewer(palette = "Set1", name="Age Group") +
+        facet_grid(outcome ~ ., scales = "free_y") +
+        geom_bar(stat="identity")
+      )
+    })
+  )),
+  tabPanel("Cost Analyses", sidebarLayout(
+    sidebarPanel(
+      fixedRow(
+        column(width=6, h5(renderText(paste0("matching: ", input$scenario)))),
+        column(width=6, h5(renderText(paste0("R_0: ", input$R_0))))
+      ),
+      hr(),
+      fixedRow(column(width=6, h5("Vax Adm. / Person")), column(width=6, h5("Vax Dose"))),
+      fixedRow(
+        column(width=6, 
+          numericInput("fixedcost", "$", value=25.00, step=0.01, min=0, max=10e4)
+        ), 
+        column(width=6,
+          numericInput("flexcost", "$", value=18.00, step=0.01, min=0, max=10e4)
+        )
+      ),
+      fixedRow(column(width=6, h5("Age Group / Outcome")), column(width=3, h5("Low Risk")), column(width=3, h5("High Risk"))),
+      group("0-4", c(outp=255, hosp=16580, death=43916), c(outp=875, hosp=124344, death=408333)),
+      group("5-18", c(outp=145, hosp=22880, death=43916), c(outp=989, hosp=312736, death=408333)),
+      group("19-29", c(outp=191, hosp=28972, death=116328), c(outp=1105, hosp=72723, death=115648)),
+      group("30-64", c(outp=229, hosp=33989, death=180695), c(outp=1117, hosp=62951, death=181102)),
+      group("65+", c(outp=369, hosp=17450, death=63924), c(outp=725, hosp=25525, death=50305)),
+      fixedRow(column(width=12, h6("*all costs USD"))),
+      width = 5
+    ),
+    mainPanel({ 
+      ref.costs.dt <- agegroup[,list(AgeGroup, risk, Outpatient=0, Hospitalization=0, Death=0)]
+      min_vax_rate <- min(mean.cases.melt$vax_rate)
+      renderPlot({
+      ref.costs.dt[risk == "normal", Outpatient := cost(input, "outp", "low") ]
+      ref.costs.dt[risk == "high", Outpatient := cost(input, "outp", "high") ]
+      ref.costs.dt[risk == "normal", Hospitalization := cost(input, "hosp", "low") ]
+      ref.costs.dt[risk == "high", Hospitalization := cost(input, "hosp", "high") ]
+      ref.costs.dt[risk == "normal", Death := cost(input, "death", "low") ]
+      ref.costs.dt[risk == "high", Death := cost(input, "death", "high") ]
+      #plot(rbinom(50,10,0.5),rbinom(50,10,0.5))
+      cost.melt <- melt(ref.costs.dt, value.name = "cost_per_case", variable.name = "outcome",
+        id.vars = c("AgeGroup","risk"))
+      cost.merge <- merge(mean.cases.melt, cost.melt, by=c("AgeGroup", "outcome", "risk"))
+      vax.costs.dt <- rbind(cost.merge,
+        cost.merge[AgeGroup == "5-18" & vax_rate != min_vax_rate, list(
+          AgeGroup,
+          outcome = "Vaccine Doses",
+          population,
+          cases = population*(vax_rate-min_vax_rate),
+          cost_per_case = input$flexcost
+          ), by=c("risk","scenario","r","vax_rate")
+        ]
+      )
+      costref <- vax.costs.dt[scenario == input$scenario & r == input$R_0, list(cost = sum(cost_per_case*cases)), by = c("vax_rate","outcome")]
+      ref_cost <- costref[vax_rate == 0.26, sum(cost)]/1e6
+      admin_cost <- min(unique(vax.costs.dt[AgeGroup == "5-18" & scenario == input$scenario & r == input$R_0, list(population = unique(population)), keyby=list(risk, vax_rate)][,list(population = sum(population)), by=vax_rate]$population)*input$fixedcost/1e6, ref_cost)
+      setkey(costref, outcome, vax_rate)
+      ggplot(costref) + theme_bw() + aes(x=vax_rate, y = cost/1e6, fill=outcome) +
+      geom_bar(stat="identity", position = "stack") +
+      annotate("rect", ymax=ref_cost, ymin=ref_cost-admin_cost, xmin=min_vax_rate-0.05, xmax=max(costref$vax_rate)+0.05, fill="red", color=NA, alpha=0.2) +
+      annotate("text", x=0.5, y=ref_cost-admin_cost/2, label="Region of Net Loss") +
+      ylab("Total Cost (Million $)") + xlab("Vaccination Rate in 5-18 year olds") +
+      coord_cartesian(ylim=c(0, ref_cost))
+    })}, width = 7)
+  )),
+  tabPanel("Notes", includeMarkdown("./notes.Rmd"))
+)
+})
+```

@@ -1,0 +1,10 @@
+---
+output: html_document
+---
+#### ACKNOWLEDGEMENTS
+
+The Alachua County ControlFlu Program ran an SLIV program in coordination with the University of Florida, and the program cost model is based on data they provided.  Cuc Tran was the force (of nature) behind making that program work, and she is now an EIS officer stationed in Atlanta.
+
+#### SOURCE
+
+Obtain the source for this visualization @ [github](https://github.com/pearsonca/AIMSposter).  The necessary `.RData` file to generate these results is available upon request to [blank101 {at} gmail {dot} com](mailto:blank101@gmail.com).
