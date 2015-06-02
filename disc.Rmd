@@ -1,6 +1,7 @@
 ---
 output: html_document
 ---
+#### CARL A. B. PEARSON, 2015 [MMED](www.ici3d.org/mmed) POSTER
 #### BACKGROUND
 
 Schools have high population densities, making them ideal for both pathogen transmission and public health interventions.  They are particularly critical to influenza transmission between households, and vaccinating this route can effectively prevent cases in other demographics.  **S**chool **L**ocated **I**nfluenza **V**accination (**SLIV**) programs target this opportunity.
