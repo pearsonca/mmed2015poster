@@ -25,7 +25,7 @@ cost <- function(input, outcome, risk) {
   sapply(base, function(i) input[[i]])
 }
 
-suppressWarnings({
+suppressPackageStartupMessages({
   invisible({
     require(data.table);
     require(ggplot2);
