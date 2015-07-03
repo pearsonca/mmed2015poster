@@ -25,13 +25,14 @@ cost <- function(input, outcome, risk) {
   sapply(base, function(i) input[[i]])
 }
 
-suppressWarnings({
-  invisible({
+suppressPackageStartupMessages({
+  suppressWarnings({
     require(data.table);
     require(ggplot2);
     require(reshape2);
-    load("caseData.RData");
+    require(markdown);
   })
+  load("caseData.RData");
   navbarPage(
   title="Interactive SLIV Cost Estimator",
   tabPanel("Summary", includeMarkdown("./disc.Rmd")),
