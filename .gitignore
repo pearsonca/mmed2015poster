@@ -1,2 +1,9 @@
 *.RData
 shinyapps
+*-concordance.tex
+*.log
+*.nav
+*.pdf
+*.snm
+*.synctex.gz
+*.toc
